@@ -1,6 +1,7 @@
 const chalk = require('chalk')
 const BigNumber = require('bignumber.js')
 const { request, gql } = require('graphql-request')
+const tableify = require('tableify')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const PROPOSAL_ID = '0xae009d3fc6517df8d2761a891be63a8a459e68e54d0b8043de176070a23ac51c'
@@ -9,6 +10,38 @@ const OUR_BRIBED_CHOICE = 'WBTC (Arbitrum)'
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const WHALE_THRESHOLD = 250000
 const WHALE_REDISTRIBUTION = 20
+
+function logSection (name) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('')
+    console.log(chalk.blue.underline(name))
+    console.log('')
+  } else {
+    const node = document.createElement('h4')
+    node.appendChild(document.createTextNode(name))
+    document.body.appendChild(node)
+  }
+}
+
+function logText (text) {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(text)
+  } else {
+    const node = document.createElement('p')
+    node.appendChild(document.createTextNode(text))
+    document.body.appendChild(node)
+  }
+}
+
+function logTable (data) {
+  if (process.env.NODE_ENV === 'development') {
+    console.table(data)
+  } else {
+    const node = document.createElement('div')
+    node.innerHTML = tableify(data)
+    document.body.appendChild(node)
+  }
+}
 
 async function main () {
   const proposalQuery = gql`
@@ -115,10 +148,8 @@ async function main () {
 
   totalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
 
-  console.log('')
-  console.log(chalk.blue.underline('Current vote totals'))
-  console.log('')
-  console.table(totalsArr)
+  logSection(chalk.blue.underline('Current vote totals'))
+  logTable(totalsArr)
 
   const percentagesByChainArr = []
   for (const [chain, p] of Object.entries(percentagesByChain)) {
@@ -126,10 +157,8 @@ async function main () {
   }
   percentagesByChainArr.sort((a, b) => BigNumber(a[1]).gt(b[1]) ? -1 : 1)
 
-  console.log('')
-  console.log(chalk.blue.underline('Vote totals by chain'))
-  console.log('')
-  console.table(percentagesByChainArr)
+  logSection(chalk.blue.underline('Vote totals by chain'))
+  logTable(percentagesByChainArr)
 
   if (percentagesByChain.Arbitrum.lt('8.333')) {
     throw new Error('no bribes, Arbitrum did not cross threshold')
@@ -182,20 +211,14 @@ async function main () {
 
   const sumBribes = BigNumber.sum(...Object.values(bribes).map(b => b.totalBribe))
 
-  console.log('')
-  console.log(chalk.blue.underline('Clawed back whale bribes'))
-  console.log('')
-  console.log(`${clawedBackWhaleBribeAmount.toFixed(2)} QI`)
+  logSection(chalk.blue.underline('Clawed back whale bribes'))
+  logText(`${clawedBackWhaleBribeAmount.toFixed(2)} QI`)
 
-  console.log('')
-  console.log(chalk.blue.underline('Our bribes'))
-  console.log('')
-  console.log(`${sumBribes.toFixed(2)} QI`)
+  logSection(chalk.blue.underline('Our bribes'))
+  logText(`${sumBribes.toFixed(2)} QI`)
 
-  console.log('')
-  console.log(chalk.blue.underline('Bribes by voter'))
-  console.log('')
-  console.table(bribes)
+  logSection(chalk.blue.underline('Bribes by voter'))
+  logTable(bribes)
 }
 
 main()
