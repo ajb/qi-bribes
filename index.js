@@ -10,6 +10,13 @@ const OUR_BRIBED_CHOICE = 'WBTC (Arbitrum)'
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const WHALE_THRESHOLD = 250000
 const WHALE_REDISTRIBUTION = 20
+const TETU_ADDRESS = '0x0644141dd9c2c34802d28d334217bd2034206bf7'
+
+function clawBackWhale (address, voterVp) {
+  if (address.toLowerCase() === TETU_ADDRESS) return false
+
+  return BigNumber(voterVp).gt(WHALE_THRESHOLD)
+}
 
 function logSection (name) {
   if (process.env.NODE_ENV === 'development') {
@@ -189,14 +196,14 @@ async function main () {
   let clawedBackWhaleBribeAmount = BigNumber(0)
 
   for (const i in bribes) {
-    if (BigNumber(bribes[i].voterVp).gt(WHALE_THRESHOLD)) {
+    if (clawBackWhale(i, bribes[i].voterVp)) {
       clawedBackWhaleBribeAmount = BigNumber.sum(clawedBackWhaleBribeAmount, bribes[i].bribeAmount)
       bribes[i].bribeAmount = 0
     }
   }
 
   for (const i in bribes) {
-    if (BigNumber(bribes[i].voterVp).lt(WHALE_THRESHOLD)) {
+    if (!clawBackWhale(i, bribes[i].voterVp)) {
       bribes[i].additionalWhaleBribe = BigNumber(bribes[i].choicePerc).times(clawedBackWhaleBribeAmount).times(WHALE_REDISTRIBUTION).div(100).div(100).toFixed(2)
     } else {
       bribes[i].additionalWhaleBribe = 0
