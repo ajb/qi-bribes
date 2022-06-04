@@ -5,19 +5,25 @@ const tableify = require('tableify')
 const cloneDeep = require('lodash.clonedeep')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const PROPOSAL_ID = '0xae009d3fc6517df8d2761a891be63a8a459e68e54d0b8043de176070a23ac51c'
+const QIDAO_PROPOSAL_ID = '0xae009d3fc6517df8d2761a891be63a8a459e68e54d0b8043de176070a23ac51c'
+const TETU_REFLECTION_PROPOSAL_ID = '0x9e9f062225de4fd04f1cf643a0334e00f2988310c71d55ba3a04c02a247e0464'
 const PAGE_SIZE = 1000
 const OUR_BRIBED_CHOICE = 'WBTC (Arbitrum)'
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
-const WHALE_THRESHOLD = 250000
+const WHALE_THRESHOLD = 250000 // 250k eQI
+const TETU_WHALE_THRESHOLD = 5000000 // 5m dxTETU
 const WHALE_REDISTRIBUTION = 20
-const TETU_ADDRESS = '0x0644141dd9c2c34802d28d334217bd2034206bf7'
+const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 
 function shouldClawBackWhale (address, voterVp) {
-  if (address.toLowerCase() === TETU_ADDRESS) return false
+  if (address === TETU_ADDRESS) return false
   return BigNumber(voterVp).gt(WHALE_THRESHOLD)
+}
+
+function shouldClawBackTetuWhale (voterVp) {
+  return BigNumber(voterVp).gt(TETU_WHALE_THRESHOLD)
 }
 
 function choiceToChain (choice) {
@@ -83,7 +89,7 @@ function logTable (data) {
   }
 }
 
-async function getAllVotes () {
+async function getAllVotes (proposalId) {
   const votes = []
 
   let i = 0
@@ -94,7 +100,7 @@ async function getAllVotes () {
           first: ${PAGE_SIZE}
           skip: ${i * PAGE_SIZE}
           where: {
-            proposal: "${PROPOSAL_ID}"
+            proposal: "${proposalId}"
           }
           orderBy: "created",
           orderDirection: desc
@@ -124,7 +130,7 @@ async function getProposalChoices () {
     query {
       proposals (
         where: {
-          id: "${PROPOSAL_ID}"
+          id: "${QIDAO_PROPOSAL_ID}"
         }
       ) {
         id
@@ -154,7 +160,8 @@ async function getProposalChoices () {
 async function main () {
   // Get subgraph data
   const choicesDict = await getProposalChoices()
-  const votes = await getAllVotes()
+  const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
+  const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
 
   // Set these up for later
   let ourChoicePercentage
@@ -267,6 +274,74 @@ async function main () {
     bribes[i].qiPerPercent = BigNumber(bribes[i].totalBribe).div(BigNumber(bribes[i].choicePerc).times(ourChoicePercentage).div(100))
   }
 
+  // Calculate Tetu bribes
+  const tetuTotalsArr = []
+  const tetuBribe = bribes[TETU_ADDRESS]
+  const tetuBribes = {}
+  if (tetuBribe) {
+    let ourTetuChoiceVotes
+
+    const tetuVoteTotals = {}
+    for (const vote of tetuVotes) {
+      const totalWeight = BigNumber.sum(...Object.values(vote.choice))
+
+      for (const [choiceId, weight] of Object.entries(vote.choice)) {
+        if (!tetuVoteTotals[choiceId]) tetuVoteTotals[choiceId] = BigNumber(0)
+        tetuVoteTotals[choiceId] = BigNumber.sum(tetuVoteTotals[choiceId], BigNumber(vote.vp).times(BigNumber(weight)).div(totalWeight))
+      }
+    }
+
+    const tetuTotalVote = BigNumber.sum(...Object.values(tetuVoteTotals))
+
+    for (const [choiceId, sumVotes] of Object.entries(tetuVoteTotals)) {
+      const percentage = sumVotes.div(tetuTotalVote).times(100)
+
+      tetuTotalsArr.push({
+        choice: choicesDict[choiceId],
+        votes: sumVotes,
+        percentage: percentage
+      })
+
+      if (choicesDict[choiceId] === OUR_BRIBED_CHOICE) {
+        ourTetuChoiceVotes = sumVotes
+      }
+    }
+
+    tetuTotalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
+
+    const tetuTotalBribe = tetuBribe.totalBribe
+
+    // Calculate bribes for each voter
+    for (const vote of tetuVotes) {
+      if (vote.vp === 0) continue
+
+      const totalWeight = BigNumber.sum(...Object.values(vote.choice))
+
+      for (const [choiceId, weight] of Object.entries(vote.choice)) {
+        if (choicesDict[choiceId] === OUR_BRIBED_CHOICE) {
+          const choiceVote = BigNumber(vote.vp).times(BigNumber(weight)).div(totalWeight)
+          const percentageOfChoiceVote = choiceVote.div(ourTetuChoiceVotes).times(100)
+          const bribe = BigNumber(tetuTotalBribe).times(percentageOfChoiceVote).div(100)
+          tetuBribes[vote.voter] = {
+            voterVp: vote.vp,
+            choicePerc: percentageOfChoiceVote,
+            bribeAmount: bribe
+          }
+        }
+      }
+    }
+
+    // Remove whale bribes (do not redistribute)
+    for (const i in tetuBribes) {
+      if (shouldClawBackTetuWhale(tetuBribes[i].voterVp)) {
+        tetuBribes[i].whaleAdjust = BigNumber(0).minus(tetuBribes[i].bribeAmount)
+      } else {
+        tetuBribes[i].whaleAdjust = BigNumber(0)
+      }
+      tetuBribes[i].totalBribe = BigNumber.sum(tetuBribes[i].bribeAmount, tetuBribes[i].whaleAdjust)
+    }
+  }
+
   // Calculate total bribes
   const sumBribes = BigNumber.sum(...Object.values(bribes).map(b => b.totalBribe))
 
@@ -288,6 +363,12 @@ async function main () {
 
   logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
   logTable(totalsWithRedistribution)
+
+  logSection(chalk.blue.underline('Tetu votes'))
+  logTable(tetuTotalsArr)
+
+  logSection(chalk.blue.underline('Tetu bribes'))
+  logTable(tetuBribes)
 }
 
 main()
