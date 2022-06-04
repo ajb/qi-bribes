@@ -12,7 +12,8 @@ const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const WHALE_THRESHOLD = 250000
 const WHALE_REDISTRIBUTION = 20
 const TETU_ADDRESS = '0x0644141dd9c2c34802d28d334217bd2034206bf7'
-// const TOTAL_WEEKLY_QI = BigNumber(180000)
+const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
+const TOTAL_WEEKLY_QI = BigNumber(180000)
 
 function shouldClawBackWhale (address, voterVp) {
   if (address.toLowerCase() === TETU_ADDRESS) return false
@@ -196,21 +197,29 @@ async function main () {
 
   totalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
 
-  logSection(chalk.blue.underline('Current vote totals'))
-  logTable(totalsArr)
-
   // Display chain percentages in descending order
   const percentagesByChainArr = []
   for (const [chain, p] of Object.entries(percentagesByChain)) {
     percentagesByChainArr.push([chain, p])
   }
   percentagesByChainArr.sort((a, b) => BigNumber(a[1]).gt(b[1]) ? -1 : 1)
-  logSection(chalk.blue.underline('Vote totals by chain'))
-  logTable(percentagesByChainArr)
+
+  // Simulate QI amounts, with chains that did not meet 8.33% removed:
+  const totalsWithRedistribution = cloneDeep(totalsArr)
+  for (const t of totalsWithRedistribution) {
+    if (percentagesByChain[choiceToChain(t.choice)].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
+      t.votes = BigNumber(0)
+    }
+  }
+  const newTotalVotesAfterRedistribution = BigNumber.sum(...totalsWithRedistribution.map(t => t.votes))
+  for (const t of totalsWithRedistribution) {
+    t.percentage = t.votes.div(newTotalVotesAfterRedistribution).times(100)
+    t.qiPerWeek = TOTAL_WEEKLY_QI.times(t.percentage).div(100)
+  }
 
   // Check that our chain has > 8.33% of vote
   const ourBribedChain = choiceToChain(OUR_BRIBED_CHOICE)
-  if (percentagesByChain[ourBribedChain].lt('8.333')) {
+  if (percentagesByChain[ourBribedChain].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
     throw new Error(`no bribes, ${ourBribedChain} did not cross threshold`)
   }
 
@@ -261,6 +270,13 @@ async function main () {
   // Calculate total bribes
   const sumBribes = BigNumber.sum(...Object.values(bribes).map(b => b.totalBribe))
 
+  // Display:
+  logSection(chalk.blue.underline('Current vote totals'))
+  logTable(totalsArr)
+
+  logSection(chalk.blue.underline('Vote totals by chain'))
+  logTable(percentagesByChainArr)
+
   logSection(chalk.blue.underline('Clawed back whale bribes'))
   logText(`${clawedBackWhaleBribeAmount.toFixed(2)} QI`)
 
@@ -269,6 +285,9 @@ async function main () {
 
   logSection(chalk.blue.underline('Bribes by voter'))
   logTable(bribes)
+
+  logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
+  logTable(totalsWithRedistribution)
 }
 
 main()
