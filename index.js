@@ -13,13 +13,20 @@ const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const WHALE_THRESHOLD = 250000 // 250k eQI
 const TETU_WHALE_THRESHOLD = 5000000 // 5m dxTETU
 const WHALE_REDISTRIBUTION = 20
+const BEEFY_VOTER_ADDRESS = '0x5e1caC103F943Cd84A1E92dAde4145664ebf692A'
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 
 function shouldClawBackWhale (address, voterVp) {
   if (address === TETU_ADDRESS) return false
+  if (address === BEEFY_VOTER_ADDRESS) return false
   return BigNumber(voterVp).gt(WHALE_THRESHOLD)
+}
+
+function shouldZeroBribe (address) {
+  if (address === BEEFY_VOTER_ADDRESS) return true
+  return false
 }
 
 function shouldClawBackTetuWhale (voterVp) {
@@ -267,6 +274,10 @@ async function main () {
     if (!shouldClawBackWhale(i, bribes[i].voterVp)) {
       bribes[i].whaleAdjust = BigNumber(bribes[i].choicePerc).times(clawedBackWhaleBribeAmount).times(WHALE_REDISTRIBUTION).div(100).div(100)
     } else {
+      bribes[i].whaleAdjust = BigNumber(0).minus(bribes[i].bribeAmount)
+    }
+
+    if (shouldZeroBribe(i)) {
       bribes[i].whaleAdjust = BigNumber(0).minus(bribes[i].bribeAmount)
     }
 
