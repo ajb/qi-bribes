@@ -11,6 +11,7 @@ const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const WHALE_THRESHOLD = 250000
 const WHALE_REDISTRIBUTION = 20
 const TETU_ADDRESS = '0x0644141dd9c2c34802d28d334217bd2034206bf7'
+// const TOTAL_WEEKLY_QI = BigNumber(180000)
 
 function clawBackWhale (address, voterVp) {
   if (address.toLowerCase() === TETU_ADDRESS) return false
@@ -142,6 +143,7 @@ async function main () {
       choice: choicesDict[choiceId],
       votes: sumVotes.toFixed(0),
       percentage: percentage.toFixed(2) + ' %'
+      // approxWeeklyQi: TOTAL_WEEKLY_QI.times(percentage).div(100).toFixed(2)
     })
 
     if (choicesDict[choiceId] === OUR_BRIBED_CHOICE) {
@@ -198,18 +200,17 @@ async function main () {
   for (const i in bribes) {
     if (clawBackWhale(i, bribes[i].voterVp)) {
       clawedBackWhaleBribeAmount = BigNumber.sum(clawedBackWhaleBribeAmount, bribes[i].bribeAmount)
-      bribes[i].bribeAmount = 0
     }
   }
 
   for (const i in bribes) {
     if (!clawBackWhale(i, bribes[i].voterVp)) {
-      bribes[i].additionalWhaleBribe = BigNumber(bribes[i].choicePerc).times(clawedBackWhaleBribeAmount).times(WHALE_REDISTRIBUTION).div(100).div(100).toFixed(2)
+      bribes[i].whaleAdjust = BigNumber(bribes[i].choicePerc).times(clawedBackWhaleBribeAmount).times(WHALE_REDISTRIBUTION).div(100).div(100).toFixed(2)
     } else {
-      bribes[i].additionalWhaleBribe = 0
+      bribes[i].whaleAdjust = BigNumber(0).minus(bribes[i].bribeAmount).toFixed(2)
     }
 
-    bribes[i].totalBribe = BigNumber.sum(bribes[i].bribeAmount, bribes[i].additionalWhaleBribe).toFixed(2)
+    bribes[i].totalBribe = BigNumber.sum(bribes[i].bribeAmount, bribes[i].whaleAdjust).toFixed(2)
 
     const globalPerc = BigNumber(bribes[i].choicePerc).times(ourChoicePercentage).div(100)
 
