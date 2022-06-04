@@ -29,6 +29,8 @@ function logSection (name) {
     console.log(chalk.blue.underline(name))
     console.log('')
   } else {
+    const loading = document.getElementById('loading')
+    if (loading) loading.parentNode.removeChild(loading)
     const node = document.createElement('h4')
     node.appendChild(document.createTextNode(name))
     document.body.appendChild(node)
