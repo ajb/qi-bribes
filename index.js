@@ -17,6 +17,7 @@ const BEEFY_VOTER_ADDRESS = '0x5e1caC103F943Cd84A1E92dAde4145664ebf692A'
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
+const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
 
 function shouldClawBackWhale (address, voterVp) {
   if (address === TETU_ADDRESS) return false
@@ -69,7 +70,7 @@ function logTable (data) {
     for (const i in data) {
       for (const [k, v] of Object.entries(data[i])) {
         if (v instanceof BigNumber) {
-          data[i][k] = v.toFixed(2)
+          data[i][k] = v.toFixed(k === 'qiPerBlock' ? null : 2)
         }
       }
     }
@@ -229,6 +230,7 @@ async function main () {
   for (const t of totalsWithRedistribution) {
     t.percentage = t.votes.div(newTotalVotesAfterRedistribution).times(100)
     t.qiPerWeek = TOTAL_WEEKLY_QI.times(t.percentage).div(100)
+    t.qiPerBlock = TOTAL_QI_PER_BLOCK.times(t.percentage).div(100)
   }
 
   // Check that our chain has > 8.33% of vote
