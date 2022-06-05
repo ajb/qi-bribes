@@ -388,6 +388,7 @@ async function main () {
     const rows = []
 
     for (const [a, b] of Object.entries(bribes)) {
+      if (a === TETU_ADDRESS) continue
       if (b.totalBribe.gt(0)) rows.push([a, b.totalBribe.toFixed(10)])
     }
 
