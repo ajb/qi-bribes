@@ -382,6 +382,21 @@ async function main () {
 
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes)
+
+  if (process.env.LOG_CSV) {
+    logSection(chalk.blue.underline('CSV for disperse.app'))
+    const rows = []
+
+    for (const [a, b] of Object.entries(bribes)) {
+      if (b.totalBribe.gt(0)) rows.push([a, b.totalBribe.toFixed(10)])
+    }
+
+    for (const [a, b] of Object.entries(tetuBribes)) {
+      if (b.totalBribe.gt(0)) rows.push([a, b.totalBribe.toFixed(10)])
+    }
+
+    console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
+  }
 }
 
 main()
