@@ -356,14 +356,16 @@ async function main () {
   logSection(chalk.blue.underline('Bribes by voter'))
   logTable(bribes)
 
-  logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
-  logTable(totalsWithRedistribution)
-
   logSection(chalk.blue.underline('Tetu votes'))
   logTable(tetuTotalsArr)
 
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes)
+
+  if (process.env.NODE_ENV === 'development') {
+    logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
+    logTable(totalsWithRedistribution)
+  }
 
   // if (process.env.LOG_CSV) {
   //   logSection(chalk.blue.underline('CSV for disperse.app'))
