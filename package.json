@@ -14,6 +14,7 @@
     "chalk": "^4.1.2",
     "graphql-request": "^4.3.0",
     "lodash.clonedeep": "^4.5.0",
+    "lodash.find": "^4.6.0",
     "tableify": "^1.1.1"
   },
   "devDependencies": {

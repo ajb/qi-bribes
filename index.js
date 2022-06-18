@@ -3,6 +3,7 @@ const BigNumber = require('bignumber.js')
 const { request, gql } = require('graphql-request')
 const tableify = require('tableify')
 const cloneDeep = require('lodash.clonedeep')
+const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0xc7f724eb3473316aef7d0fa7c81d3a50614760cd82ada0c1a08eab6c16e53fda'
@@ -272,14 +273,10 @@ async function main () {
 
   // Calculate Tetu bribes
   const tetuTotalsArr = []
-
-  // TODO: this is just for testing
-  // switch these back once Tetu submits their vote
-  const tetuBribe = bribes[TETU_ADDRESS]
-  // const tetuBribe = bribes['0x773743e9e4d124D7B79c98799DA8c1E14f032080']
+  const tetuVote = find(votes, v => v.voter === TETU_ADDRESS)
 
   const tetuBribes = {}
-  if (tetuBribe) {
+  if (tetuVote) {
     let ourTetuChoiceVotes = BigNumber(0)
 
     const tetuVoteTotals = {}
@@ -312,11 +309,12 @@ async function main () {
 
     tetuTotalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
 
-    const tetuTotalBribe = tetuBribe.bribeAmount
-
     // Calculate bribes for each voter
+    let tetuTotalVp = BigNumber(0)
+    let tetuBribedVp = BigNumber(0)
     for (const vote of tetuVotes) {
-      console.log(vote)
+      tetuTotalVp = tetuTotalVp.plus(vote.vp)
+
       if (vote.vp === 0) continue
 
       if (!hasSameWeightsForBothTetuChoices(vote.choice)) continue
@@ -334,12 +332,21 @@ async function main () {
         choicePercent: totalChoicePercent,
         choiceVp: totalChoicePercent.times(vote.vp)
       }
+
+      tetuBribedVp = tetuBribedVp.plus(tetuBribes[vote.voter].choiceVp)
     }
 
-    // Get total 50/50 choice VP
-    const totalChoiceVp = BigNumber.sum(...Object.values(tetuBribes).map(b => b.choiceVp))
+    // get the % of the tetu vote that voted 50/50 and receives bribes
+    const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
+
+    // determine the total qidao vote % that this amount of votes was responsible for
+    const tetuQiBribedVp = BigNumber(tetuVote.vp).times(percentTetuVoteBribed)
+    const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
+    const tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
+
     for (const i in tetuBribes) {
-      tetuBribes[i].bribeAmount = tetuBribes[i].choiceVp.div(totalChoiceVp).times(tetuTotalBribe)
+      const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuTotalVp)
+      tetuBribes[i].bribeAmount = percentOfTetuVote.times(tetuTotalBribe)
     }
   }
 
