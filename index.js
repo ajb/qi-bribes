@@ -374,21 +374,20 @@ async function main () {
     logTable(totalsWithRedistribution)
   }
 
-  // if (process.env.LOG_CSV) {
-  //   logSection(chalk.blue.underline('CSV for disperse.app'))
-  //   const rows = []
+  if (process.env.LOG_CSV) {
+    logSection(chalk.blue.underline('CSV for disperse.app'))
+    const rows = []
 
-  //   for (const [a, b] of Object.entries(bribes)) {
-  //     if (a === TETU_ADDRESS) continue
-  //     if (b.totalBribe.gt(0)) rows.push([a, b.totalBribe.toFixed(10)])
-  //   }
+    for (const [a, b] of Object.entries(bribes)) {
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
+    }
 
-  //   for (const [a, b] of Object.entries(tetuBribes)) {
-  //     if (b.totalBribe.gt(0)) rows.push([a, b.totalBribe.toFixed(10)])
-  //   }
+    for (const [a, b] of Object.entries(tetuBribes)) {
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
+    }
 
-  //   console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
-  // }
+    console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
+  }
 }
 
 main()
