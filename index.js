@@ -6,15 +6,15 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xc7f724eb3473316aef7d0fa7c81d3a50614760cd82ada0c1a08eab6c16e53fda'
-const TETU_REFLECTION_PROPOSAL_ID = '0xf6f2a222da1e54d521e731e9f0e4ddacf980254bbcbaae535aedfa10b01d7563'
+const QIDAO_PROPOSAL_ID = '0x36e52a331a5c4d0fd27ea15a3f78cacdbf971e3ae1403433bcda93cbf33800ec'
+const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
-const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism) ']
+const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism)']
 const OUR_BRIBED_CHOICES_TETU = ['WBTC(Optimism)', 'WBTC(Arbitrum)']
 
 function choiceToChain (choice) {
@@ -144,6 +144,8 @@ async function getProposalChoices (proposalId) {
       }
       }
   `)
+
+  if (proposalResp.proposals.length === 0) return []
 
   return ['', ...proposalResp.proposals[0].choices] // starts at idx = 1
 }
