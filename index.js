@@ -14,15 +14,22 @@ const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
-const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism)']
+const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism) ']
 const OUR_BRIBED_CHOICES_TETU = ['WBTC(Optimism)', 'WBTC(Arbitrum)']
 
 function choiceToChain (choice) {
   return choice.split('(')[1].split(')')[0]
 }
 
+function getEnvVar (n) {
+  if (typeof process === 'undefined') {
+    return null
+  }
+
+  return process.env[n]
+}
 function logSection (name) {
-  if (process.env.NODE_ENV === 'development') {
+  if (getEnvVar('NODE_ENV') === 'development') {
     console.log('')
     console.log(chalk.blue.underline(name))
     console.log('')
@@ -36,7 +43,7 @@ function logSection (name) {
 }
 
 function logText (text) {
-  if (process.env.NODE_ENV === 'development') {
+  if (getEnvVar('NODE_ENV') === 'development') {
     console.log(text)
   } else {
     const node = document.createElement('p')
@@ -71,7 +78,7 @@ function logTable (data) {
     }
   }
 
-  if (process.env.NODE_ENV === 'development') {
+  if (getEnvVar('NODE_ENV') === 'development') {
     console.table(data)
   } else {
     const node = document.createElement('div')
@@ -371,12 +378,12 @@ async function main () {
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes)
 
-  if (process.env.NODE_ENV === 'development') {
+  if (getEnvVar('NODE_ENV') === 'development') {
     logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
     logTable(totalsWithRedistribution)
   }
 
-  if (process.env.LOG_CSV) {
+  if (getEnvVar('LOG_CSV')) {
     logSection(chalk.blue.underline('CSV for disperse.app'))
     const rows = []
 
