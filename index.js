@@ -7,7 +7,7 @@ const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x36e52a331a5c4d0fd27ea15a3f78cacdbf971e3ae1403433bcda93cbf33800ec'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x581d10ff0548184f9f83d4172e4bf935676e6a42be898d4cbbb4c125fb14b9db'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
