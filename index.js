@@ -1,9 +1,13 @@
-const chalk = require('chalk')
+const ethers = require('ethers')
 const BigNumber = require('bignumber.js')
+const chalk = require('chalk')
 const { request, gql } = require('graphql-request')
 const tableify = require('tableify')
 const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
+const range = require('lodash.range')
+const chunk = require('lodash.chunk')
+const snapshotConfig = require('./snapshot_config.json')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x36e52a331a5c4d0fd27ea15a3f78cacdbf971e3ae1403433bcda93cbf33800ec'
@@ -16,6 +20,66 @@ const TOTAL_WEEKLY_QI = BigNumber(180000)
 const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
 const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism) ']
 const OUR_BRIBED_CHOICES_TETU = ['WBTC(Optimism)', 'WBTC(Arbitrum)']
+
+const networkIdsToNames = {
+  10: 'optimism',
+  137: 'polygon',
+  250: 'fantom',
+  288: 'boba',
+  100: 'gnosis',
+  56: 'bsc',
+  43114: 'avalanche',
+  42161: 'arbitrum',
+  8217: 'klaytn',
+  4689: 'iotex',
+  1284: 'moonbeam',
+  1088: 'metis'
+}
+
+function getProviderByNetworkId (id) {
+  const networkName = networkIdsToNames[id]
+  if (networkName) return getProvider(networkName)
+}
+
+function getProvider (network) {
+  const envVarStr = `${network.toUpperCase()}_RPC_HTTP`
+  const urlStr = process.env[envVarStr]
+
+  if (network === 'local') {
+    return new ethers.providers.JsonRpcProvider(urlStr)
+  }
+
+  if (urlStr) {
+    const u = new URL(urlStr)
+    return new ethers.providers.JsonRpcProvider({
+      url: u.origin + u.pathname,
+      user: u.username,
+      password: u.password
+    })
+  } else {
+    throw new Error(`no env var set: ${envVarStr}`)
+  }
+}
+
+async function calculateVpOurselves (addr) {
+  const balances = []
+  for (const s of snapshotConfig.strategy.params.strategies) {
+    const p = await getProviderByNetworkId(s.network)
+    if (!p) {
+      console.log('skipping network id', s.network)
+      continue
+    }
+    const contract = new ethers.Contract(
+      s.params.address,
+      require('./abis/ERC20.json'),
+      p
+    )
+    const res = await contract.balanceOf(addr)
+    balances.push(BigNumber(res.toString()).shiftedBy(-18))
+  }
+
+  return BigNumber.sum(...balances).toNumber()
+}
 
 function choiceToChain (choice) {
   return choice.split('(')[1].split(')')[0]
@@ -181,6 +245,25 @@ async function main () {
   const tetuChoicesDict = await getProposalChoices(TETU_REFLECTION_PROPOSAL_ID)
   const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
   const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
+
+  const voteIdxs = range(0, votes.length - 1)
+  const voteChunks = chunk(voteIdxs, 10)
+
+  for (const chunk of voteChunks) {
+    await Promise.all(chunk.map(async function (i) {
+      console.log(`Calculating new VP for ${votes[i].voter}...`)
+      votes[i].originalVp = votes[i].vp
+      votes[i].vp = await calculateVpOurselves(votes[i].voter)
+      console.log('Old vp', votes[i].originalVp, 'new vp', votes[i].vp)
+      console.log('')
+    }))
+  }
+
+  const newVps = {}
+  for (const v of votes) {
+    newVps[v.voter] = v.vp
+  }
+  console.log(JSON.stringify(newVps, null, 2))
 
   // Calculate vote totals
   const voteTotals = {}
