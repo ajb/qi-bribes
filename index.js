@@ -1,3 +1,4 @@
+const delay = require('delay')
 const ethers = require('ethers')
 const BigNumber = require('bignumber.js')
 const chalk = require('chalk')
@@ -246,24 +247,41 @@ async function main () {
   const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
   const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
 
-  const voteIdxs = range(0, votes.length - 1)
-  const voteChunks = chunk(voteIdxs, 10)
+  if (process.env.CALCULATE_NEW_VPS) {
+    const voteIdxs = range(0, votes.length - 1)
+    const voteChunks = chunk(voteIdxs, 10)
+    for (const chunk of voteChunks) {
+      console.log('running chunk')
+      await Promise.all(chunk.map(async function (i) {
+        console.log(`Calculating new VP for ${votes[i].voter}...`)
+        let newVp
+        try {
+          newVp = await calculateVpOurselves(votes[i].voter)
+        } catch (err) {
+          console.log('error', err)
+          return
+        }
+        votes[i].originalVp = votes[i].vp
+        votes[i].vp = newVp
+        console.log('Old vp', votes[i].originalVp, 'new vp', votes[i].vp)
+        console.log('')
+      }))
 
-  for (const chunk of voteChunks) {
-    await Promise.all(chunk.map(async function (i) {
-      console.log(`Calculating new VP for ${votes[i].voter}...`)
-      votes[i].originalVp = votes[i].vp
-      votes[i].vp = await calculateVpOurselves(votes[i].voter)
-      console.log('Old vp', votes[i].originalVp, 'new vp', votes[i].vp)
-      console.log('')
-    }))
-  }
+      await delay(5000)
+    }
+    const newVps = {}
+    for (const v of votes) {
+      newVps[v.voter] = v.vp
+    }
+    console.log(JSON.stringify(newVps, null, 2))
+  } else {
+    const newVps = require('./newVps.json')
 
-  const newVps = {}
-  for (const v of votes) {
-    newVps[v.voter] = v.vp
+    // set new vps
+    for (const v of votes) {
+      v.vp = newVps[v.voter]
+    }
   }
-  console.log(JSON.stringify(newVps, null, 2))
 
   // Calculate vote totals
   const voteTotals = {}
