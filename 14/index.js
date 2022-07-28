@@ -6,15 +6,15 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x4e38458158faa7d76f70d532ce23ebf68e76738def683aac42b592d2b9f4e9ce'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0xa61dd3561d388f66ed11bd4a2321d3b878f320ffe1610c063689b620894fa779'
+const TETU_REFLECTION_PROPOSAL_ID = '0x29eee462ae871798f7ba00fd858482a80fbcdd0bf4b58c282a81a344e110118f'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
-const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism)']
+const OUR_BRIBED_CHOICES = ['WBTC (Arbitrum)', 'WBTC (Optimism) ']
 const OUR_BRIBED_CHOICES_TETU = ['WBTC(Optimism)', 'WBTC(Arbitrum)']
 
 function choiceToChain (choice) {
@@ -181,8 +181,6 @@ async function main () {
   const tetuChoicesDict = await getProposalChoices(TETU_REFLECTION_PROPOSAL_ID)
   const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
   const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
-
-  // console.log(choicesDict, tetuChoicesDict)
 
   // Calculate vote totals
   const voteTotals = {}
