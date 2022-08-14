@@ -195,6 +195,9 @@ async function main () {
 
   const totalVote = BigNumber.sum(...Object.values(voteTotals))
 
+  // console.log('totalVote', totalVote.toString())
+  // asdf
+
   const totalsArr = []
   const percentagesByChain = {}
 
@@ -284,6 +287,9 @@ async function main () {
   const tetuTotalsArr = []
   const tetuVote = find(votes, v => v.voter === TETU_ADDRESS)
 
+  // console.log(tetuVote)
+  // asdf
+
   const tetuBribes = {}
   let ourTetuChoiceVotes = BigNumber(0)
 
@@ -345,6 +351,9 @@ async function main () {
   }
 
   // get the % of the tetu vote that voted 50/50 and receives bribes
+  // console.log('tetu total vp', tetuTotalVp.toString())
+  // asdf
+
   const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
 
   // determine the total qidao vote % that this amount of votes was responsible for
