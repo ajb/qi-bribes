@@ -349,10 +349,11 @@ async function main () {
   const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
 
   // determine the total qidao vote % that this amount of votes was responsible for
+  let tetuTotalBribe
   if (tetuVote) {
     const tetuQiBribedVp = BigNumber(tetuVote.vp).times(percentTetuVoteBribed)
     const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
-    const tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
+    tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
 
     for (const i in tetuBribes) {
       const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuTotalVp)
@@ -379,6 +380,9 @@ async function main () {
 
   logSection(chalk.blue.underline('Tetu votes'))
   logTable(tetuTotalsArr)
+
+  logSection(chalk.blue.underline('Tetu total bribes'))
+  logText(tetuTotalBribe ? `${tetuTotalBribe.toFixed(2)} QI` : '-')
 
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes)
