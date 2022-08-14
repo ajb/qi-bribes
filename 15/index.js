@@ -182,6 +182,9 @@ async function main () {
   const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
   const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
 
+  // console.log(tetuVotes)
+  // asdf
+
   // console.log(choicesDict, tetuChoicesDict)
 
   // Calculate vote totals
@@ -196,6 +199,9 @@ async function main () {
   }
 
   const totalVote = BigNumber.sum(...Object.values(voteTotals))
+
+  // console.log(totalVote.toString())
+  // asdf
 
   const totalsArr = []
   const percentagesByChain = {}
@@ -286,6 +292,9 @@ async function main () {
   const tetuTotalsArr = []
   const tetuVote = find(votes, v => v.voter === TETU_ADDRESS)
 
+  // console.log(tetuVote)
+  // asdf
+
   const tetuBribes = {}
   if (tetuVote) {
     let ourTetuChoiceVotes = BigNumber(0)
@@ -322,6 +331,7 @@ async function main () {
 
     // Calculate bribes for each voter
     let tetuTotalVp = BigNumber(0)
+
     let tetuBribedVp = BigNumber(0)
     for (const vote of tetuVotes) {
       tetuTotalVp = tetuTotalVp.plus(vote.vp)
@@ -346,6 +356,9 @@ async function main () {
 
       tetuBribedVp = tetuBribedVp.plus(tetuBribes[vote.voter].choiceVp)
     }
+
+    // console.log(tetuTotalVp.toString())
+    // asdf
 
     // get the % of the tetu vote that voted 50/50 and receives bribes
     const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
