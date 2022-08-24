@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="dist/main.js"></script>
   <style type="text/css">
     body {
       text-align: center;
+      background: #ddd;
+      font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    }
+
+    #bal {
+      width: 120px;
+      height: 120px;
     }
 
     .tableWrapper {
@@ -15,12 +21,19 @@
     td {
       border: 1px solid grey;
     }
+
+    h5 {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
+  <img src="bal.png" id="bal" />
   <h1>QiDao Gauge Vote: Round 17</h1>
   <h2>Vote for BAL to receive <span id="qiPerPercent"></span> QI per 1% of the vote</h2>
-  <h4>Note: </h4>
+  <h4><a id="linkToSnapshot"></a></h4>
+  <h4>Note: bribes will be paid <em>after</em> vault airdrops from this round are received.</h4>
   <div id='loading'>Loading...</div>
+  <script src="dist/main.js"></script>
 </body>
 </html>

@@ -6,10 +6,10 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xd6b5fb4fa018954acc28e3c6c85046b89bed9242f14f0c1e01de9154fc6fcf77'
-const TETU_REFLECTION_PROPOSAL_ID = '0xe6959c7bebfefc6f4448c3f195e2f6820c6ee4253123f245f5693fbbe7d270fb'
+const QIDAO_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(666)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(600)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
@@ -28,6 +28,7 @@ function getEnvVar (n) {
 
   return process.env[n]
 }
+
 function logSection (name) {
   if (getEnvVar('NODE_ENV') === 'development') {
     console.log('')
@@ -52,7 +53,7 @@ function logText (text) {
   }
 }
 
-function logTable (data) {
+function logTable (data, voterHeaders) {
   data = cloneDeep(data)
 
   // format numbers, etc
@@ -81,10 +82,23 @@ function logTable (data) {
   if (getEnvVar('NODE_ENV') === 'development') {
     console.table(data)
   } else {
-    const node = document.createElement('div')
-    node.className = 'tableWrapper'
-    node.innerHTML = tableify(data)
-    document.body.appendChild(node)
+    if (voterHeaders) {
+      for (const [k, v] of Object.entries(data)) {
+        const h5 = document.createElement('h5')
+        h5.innerText = k
+        document.body.appendChild(h5)
+
+        const node = document.createElement('div')
+        node.className = 'tableWrapper'
+        node.innerHTML = tableify(v)
+        document.body.appendChild(node)
+      }
+    } else {
+      const node = document.createElement('div')
+      node.className = 'tableWrapper'
+      node.innerHTML = tableify(data)
+      document.body.appendChild(node)
+    }
   }
 }
 
@@ -159,6 +173,13 @@ async function getProposalChoices (proposalId) {
 }
 
 async function main () {
+  if (getEnvVar('NODE_ENV') !== 'development') {
+    document.getElementById('qiPerPercent').innerText = QI_BRIBE_PER_ONE_PERCENT.toString()
+    const url = 'https://snapshot.org/#/qidao.eth/proposal/' + QIDAO_PROPOSAL_ID.toString()
+    document.getElementById('linkToSnapshot').innerText = url
+    document.getElementById('linkToSnapshot').href = url
+  }
+
   function hasSameWeightsForBothChoices (voteChoice) {
     const totalChoice = BigNumber.sum(...Object.values(voteChoice))
 
@@ -383,7 +404,7 @@ async function main () {
   logText(`${totalBribe.toFixed(2)} QI`)
 
   logSection(chalk.blue.underline('Bribes by voter'))
-  logTable(bribes)
+  logTable(bribes, true)
 
   logSection(chalk.blue.underline('Tetu votes'))
   logTable(tetuTotalsArr)
@@ -392,7 +413,7 @@ async function main () {
   logText(tetuTotalBribe ? `${tetuTotalBribe.toFixed(2)} QI` : '-')
 
   logSection(chalk.blue.underline('Tetu bribes'))
-  logTable(tetuBribes)
+  logTable(tetuBribes, true)
 
   if (getEnvVar('NODE_ENV') === 'development') {
     logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
