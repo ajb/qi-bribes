@@ -7,7 +7,7 @@ const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x90553aff543a432048e2e7cc8dfdbc1f23f8fcecee19cf61caa038b22df66c90'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x2103df87f50003ec60de8a9fbb58108870ef76f47ce103dc9a65da7eff6af523'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(770)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
@@ -15,7 +15,7 @@ const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
 const OUR_BRIBED_CHOICES = ['BAL (Polygon)']
-const OUR_BRIBED_CHOICES_TETU = ['BAL (Polygon)']
+const OUR_BRIBED_CHOICES_TETU = ['BAL(Polygon)']
 
 function choiceToChain (choice) {
   return choice.split('(')[1].split(')')[0]
