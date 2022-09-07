@@ -6,17 +6,16 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0x90553aff543a432048e2e7cc8dfdbc1f23f8fcecee19cf61caa038b22df66c90'
+const TETU_REFLECTION_PROPOSAL_ID = '0x2103df87f50003ec60de8a9fbb58108870ef76f47ce103dc9a65da7eff6af523'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(770)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
+const TOTAL_QI_PER_BLOCK = BigNumber(0.65)
 const OUR_BRIBED_CHOICES = ['BAL (Polygon)']
 const OUR_BRIBED_CHOICES_TETU = ['BAL(Polygon)']
-const MAX_PERCENT = BigNumber(20)
-const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 function choiceToChain (choice) {
   return choice.split('(')[1].split(')')[0]
@@ -176,7 +175,6 @@ async function getProposalChoices (proposalId) {
 async function main () {
   if (getEnvVar('NODE_ENV') !== 'development') {
     document.getElementById('qiPerPercent').innerText = QI_BRIBE_PER_ONE_PERCENT.toString()
-    document.getElementById('maxTotalBribe').innerText = MAX_BRIBE_IN_QI.toString()
     const url = 'https://snapshot.org/#/qidao.eth/proposal/' + QIDAO_PROPOSAL_ID.toString()
     document.getElementById('linkToSnapshot').innerText = url
     document.getElementById('linkToSnapshot').href = url
@@ -262,6 +260,7 @@ async function main () {
   for (const t of totalsWithRedistribution) {
     t.percentage = t.votes.div(newTotalVotesAfterRedistribution).times(100)
     t.qiPerWeek = TOTAL_WEEKLY_QI.times(t.percentage).div(100)
+    t.qiPerBlock = TOTAL_QI_PER_BLOCK.times(t.percentage).div(100)
   }
 
   // Check that our chain has > 8.33% of vote
@@ -303,12 +302,7 @@ async function main () {
   // Get total 50/50 choice VP
   const totalChoiceVp = BigNumber.sum(...Object.values(bribes).map(b => b.choiceVp))
   const totalFiftyFiftyPercent = totalChoiceVp.div(totalVote).times(100)
-  let totalBribe = QI_BRIBE_PER_ONE_PERCENT.times(totalFiftyFiftyPercent)
-
-  if (totalBribe.gt(MAX_BRIBE_IN_QI)) {
-    console.log('total bribe was highier than max:', totalBribe.toString(), 'limited to max:', MAX_BRIBE_IN_QI.toString())
-    totalBribe = MAX_BRIBE_IN_QI
-  }
+  const totalBribe = QI_BRIBE_PER_ONE_PERCENT.times(totalFiftyFiftyPercent)
 
   for (const i in bribes) {
     bribes[i].bribeAmount = bribes[i].choiceVp.div(totalChoiceVp).times(totalBribe)
