@@ -6,8 +6,8 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0xe32661e574a3238be9cbfe416c3284d09cb4d079f2a3ebf3449321553e078f2b'
+const TETU_REFLECTION_PROPOSAL_ID = '0x9f2f40578eeaac4a1420cce5a7947c63ce56a48fc095e34183eb590055190e8a'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
