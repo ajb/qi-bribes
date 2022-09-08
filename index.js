@@ -276,7 +276,7 @@ async function main () {
 
   // add known bribes
   for (const t of totalsArr) {
-    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20)) : BigNumber(0)
+    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20, t.originalPercentage)) : BigNumber(0)
     t.votersReceive = t.totalBribe.div(t.originalPercentage).toFixed(2) + ' QI/1%'
   }
 
