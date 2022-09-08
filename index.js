@@ -13,10 +13,17 @@ const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
-const OUR_BRIBED_CHOICES = ['BAL (Polygon)']
-const OUR_BRIBED_CHOICES_TETU = ['BAL(Polygon)']
+const OUR_BRIBED_CHOICE = 'BAL (Polygon)'
+const OUR_BRIBED_CHOICE_TETU = 'BAL(Polygon)'
 const MAX_PERCENT = BigNumber(20)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
+
+const KNOWN_BRIBES_PER_ONE_PERCENT = {
+  'WBTC (Optimism)': BigNumber(1585),
+  'BAL (Polygon)': BigNumber(800),
+  'xxLINK (Polygon)': BigNumber(800),
+  'vGHST (Polygon)': BigNumber(800)
+}
 
 function choiceToChain (choice) {
   return choice.split('(')[1].split(')')[0]
@@ -174,36 +181,13 @@ async function getProposalChoices (proposalId) {
 }
 
 async function main () {
+  // update website
   if (getEnvVar('NODE_ENV') !== 'development') {
     document.getElementById('qiPerPercent').innerText = QI_BRIBE_PER_ONE_PERCENT.toString()
     document.getElementById('maxTotalBribe').innerText = MAX_BRIBE_IN_QI.toString()
     const url = 'https://snapshot.org/#/qidao.eth/proposal/' + QIDAO_PROPOSAL_ID.toString()
     document.getElementById('linkToSnapshot').innerText = url
     document.getElementById('linkToSnapshot').href = url
-  }
-
-  function hasSameWeightsForBothChoices (voteChoice) {
-    const totalChoice = BigNumber.sum(...Object.values(voteChoice))
-
-    const idxs = []
-    for (const c of OUR_BRIBED_CHOICES) {
-      idxs.push(choicesDict.indexOf(c))
-    }
-
-    const percentVote = BigNumber(voteChoice[idxs[0]] || 0).div(totalChoice)
-    return percentVote.eq(1)
-  }
-
-  function hasSameWeightsForBothTetuChoices (voteChoice) {
-    const totalChoice = BigNumber.sum(...Object.values(voteChoice))
-
-    const idxs = []
-    for (const c of OUR_BRIBED_CHOICES_TETU) {
-      idxs.push(tetuChoicesDict.indexOf(c))
-    }
-
-    const percentVote = BigNumber(voteChoice[idxs[0]] || 0).div(totalChoice)
-    return percentVote.eq(1)
   }
 
   // Get subgraph data
@@ -226,23 +210,49 @@ async function main () {
   const totalVote = BigNumber.sum(...Object.values(voteTotals))
 
   const totalsArr = []
-  const percentagesByChain = {}
-
   for (const [choiceId, sumVotes] of Object.entries(voteTotals)) {
-    const percentage = sumVotes.div(totalVote).times(100)
-    const chain = choiceToChain(choicesDict[choiceId])
+    const originalPercentage = sumVotes.div(totalVote).times(100)
 
     totalsArr.push({
       choice: choicesDict[choiceId],
-      votes: sumVotes,
-      percentage: percentage
+      originalVotes: sumVotes,
+      originalPercentage
     })
+  }
+  totalsArr.sort((a, b) => BigNumber(a.originalVotes).gt(b.originalVotes) ? -1 : 1)
 
-    if (!percentagesByChain[chain]) percentagesByChain[chain] = BigNumber(0)
-    percentagesByChain[chain] = BigNumber.sum(percentagesByChain[chain], percentage)
+  // redistribute > 20%
+  for (const t of totalsArr) {
+    t.votes = t.originalVotes
   }
 
-  totalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
+  for (const t of totalsArr) {
+    if (t.votes.div(totalVote).times(100).gt(MAX_PERCENT)) {
+      const originalVotes = t.votes
+      const newVotes = totalVote.times('0.2')
+      const subtractVotes = originalVotes.minus(newVotes)
+      t.votes = newVotes
+
+      let otherChoicesTotal = BigNumber(0)
+      for (const otherChoice of totalsArr) {
+        if (otherChoice.choice === t.choice) continue
+        otherChoicesTotal = otherChoicesTotal.plus(otherChoice.votes)
+      }
+
+      for (const otherChoice of totalsArr) {
+        if (otherChoice.choice === t.choice) continue
+        otherChoice.votes = otherChoice.votes.plus(subtractVotes.times(otherChoice.votes.div(otherChoicesTotal)))
+      }
+    }
+  }
+
+  const percentagesByChain = {}
+  for (const t of totalsArr) {
+    percentagesByChain[choiceToChain(t.choice)] = percentagesByChain[choiceToChain(t.choice)] || BigNumber(0)
+    percentagesByChain[choiceToChain(t.choice)] = percentagesByChain[choiceToChain(t.choice)].plus(
+      t.votes.div(totalVote).times(100)
+    )
+  }
 
   // Display chain percentages in descending order
   const percentagesByChainArr = []
@@ -251,48 +261,44 @@ async function main () {
   }
   percentagesByChainArr.sort((a, b) => BigNumber(a[1]).gt(b[1]) ? -1 : 1)
 
-  // Simulate QI amounts, with chains that did not meet 8.33% removed:
-  const totalsWithRedistribution = cloneDeep(totalsArr)
-  for (const t of totalsWithRedistribution) {
-    if (percentagesByChain[choiceToChain(t.choice)].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
+  // remove chains with less than 8.3%
+  for (const t of totalsArr) {
+    const chain = choiceToChain(t.choice)
+    if (percentagesByChain[chain].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
       t.votes = BigNumber(0)
     }
   }
-  const newTotalVotesAfterRedistribution = BigNumber.sum(...totalsWithRedistribution.map(t => t.votes))
-  for (const t of totalsWithRedistribution) {
-    t.percentage = t.votes.div(newTotalVotesAfterRedistribution).times(100)
-    t.qiPerWeek = TOTAL_WEEKLY_QI.times(t.percentage).div(100)
+
+  // calculate final percentages
+  for (const t of totalsArr) {
+    t.percentage = t.votes.div(totalVote).times(100)
   }
 
-  // Check that our chain has > 8.33% of vote
-  // if (!process.env.SKIP_THRESHOLD_CHECK) {
-  //   const ourBribedChainOne = choiceToChain(OUR_BRIBED_CHOICES[0])
-  //   if (percentagesByChain[ourBribedChainOne].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
-  //     throw new Error(`no bribes, ${ourBribedChainOne} did not cross threshold`)
-  //   }
+  // add known bribes
+  for (const t of totalsArr) {
+    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20)) : BigNumber(0)
+    t.votersReceive = t.totalBribe.div(t.originalPercentage).toFixed(2) + ' QI/1%'
+  }
 
-  //   // Check that our other chain has > 8.33% of vote
-  //   const ourBribedChainTwo = choiceToChain(OUR_BRIBED_CHOICES[1])
-  //   if (percentagesByChain[ourBribedChainTwo].lt(MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS)) {
-  //     throw new Error(`no bribes, ${ourBribedChainTwo} did not cross threshold`)
-  //   }
-  // }
+  // add qi per week
+  for (const t of totalsArr) {
+    t.totalWeeklyQi = TOTAL_WEEKLY_QI.times(t.percentage).div(100)
+  }
 
   // Calculate bribes for each voter
   const bribes = {}
   for (const vote of votes) {
     if (vote.vp === 0) continue
 
-    if (!hasSameWeightsForBothChoices(vote.choice)) continue
-
     const totalWeight = BigNumber.sum(...Object.values(vote.choice))
 
     let totalChoicePercent = BigNumber(0)
     for (const [choiceId, weight] of Object.entries(vote.choice)) {
-      if (choicesDict[choiceId] === OUR_BRIBED_CHOICES[0] || choicesDict[choiceId] === OUR_BRIBED_CHOICES[1]) {
+      if (choicesDict[choiceId] === OUR_BRIBED_CHOICE) {
         totalChoicePercent = totalChoicePercent.plus(BigNumber(weight).div(totalWeight))
       }
     }
+    if (totalChoicePercent.eq(0)) continue
     bribes[vote.voter] = {
       vp: vote.vp,
       choicePercent: totalChoicePercent,
@@ -300,15 +306,9 @@ async function main () {
     }
   }
 
-  // Get total 50/50 choice VP
+  // Get total choice VP
   const totalChoiceVp = BigNumber.sum(...Object.values(bribes).map(b => b.choiceVp))
-  const totalFiftyFiftyPercent = totalChoiceVp.div(totalVote).times(100)
-  let totalBribe = QI_BRIBE_PER_ONE_PERCENT.times(totalFiftyFiftyPercent)
-
-  if (totalBribe.gt(MAX_BRIBE_IN_QI)) {
-    console.log('total bribe was highier than max:', totalBribe.toString(), 'limited to max:', MAX_BRIBE_IN_QI.toString())
-    totalBribe = MAX_BRIBE_IN_QI
-  }
+  const totalBribe = find(totalsArr, t => t.choice === OUR_BRIBED_CHOICE).totalBribe
 
   for (const i in bribes) {
     bribes[i].bribeAmount = bribes[i].choiceVp.div(totalChoiceVp).times(totalBribe)
@@ -344,7 +344,7 @@ async function main () {
       percentage: percentage
     })
 
-    if (choiceStr === OUR_BRIBED_CHOICES_TETU[0] || choiceStr === OUR_BRIBED_CHOICES_TETU[1]) {
+    if (choiceStr === OUR_BRIBED_CHOICE_TETU[0]) {
       ourTetuChoiceVotes = ourTetuChoiceVotes.plus(sumVotes)
     }
   }
@@ -359,16 +359,15 @@ async function main () {
 
     if (vote.vp === 0) continue
 
-    if (vote.voter !== '0x7754d8b057CC1d2D857d897461DAC6C3235B4aAe' && !hasSameWeightsForBothTetuChoices(vote.choice)) continue
-
     const totalWeight = BigNumber.sum(...Object.values(vote.choice))
 
     let totalChoicePercent = BigNumber(0)
     for (const [choiceId, weight] of Object.entries(vote.choice)) {
-      if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICES_TETU[0] || tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICES_TETU[1]) {
+      if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICE_TETU) {
         totalChoicePercent = totalChoicePercent.plus(BigNumber(weight).div(totalWeight))
       }
     }
+    if (totalChoicePercent.eq(0)) continue
     tetuBribes[vote.voter] = {
       vp: vote.vp,
       choicePercent: totalChoicePercent,
@@ -400,7 +399,7 @@ async function main () {
   }
 
   // Display:
-  logSection(chalk.blue.underline('Current vote totals'))
+  logSection(chalk.blue.underline('Vote totals'))
   logTable(totalsArr)
 
   logSection(chalk.blue.underline('Vote totals by chain'))
@@ -421,25 +420,20 @@ async function main () {
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes, true)
 
-  if (getEnvVar('NODE_ENV') === 'development') {
-    logSection(chalk.blue.underline(`Totals with redistribution of sub-${MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS.toFixed()}% chains`))
-    logTable(totalsWithRedistribution)
-  }
+  // if (getEnvVar('LOG_CSV')) {
+  //   logSection(chalk.blue.underline('CSV for disperse.app'))
+  //   const rows = []
 
-  if (getEnvVar('LOG_CSV')) {
-    logSection(chalk.blue.underline('CSV for disperse.app'))
-    const rows = []
+  //   for (const [a, b] of Object.entries(bribes)) {
+  //     if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+  //   }
 
-    for (const [a, b] of Object.entries(bribes)) {
-      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
-    }
+  //   for (const [a, b] of Object.entries(tetuBribes)) {
+  //     if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+  //   }
 
-    for (const [a, b] of Object.entries(tetuBribes)) {
-      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
-    }
-
-    console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
-  }
+  //   console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
+  // }
 }
 
 main()
