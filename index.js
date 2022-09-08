@@ -214,13 +214,13 @@ async function main () {
     return BigNumber.sum(...totalsArr.map(v => v.votes))
   }
   for (const [choiceId, sumVotes] of Object.entries(voteTotals)) {
-    const originalPercentage = sumVotes.div(totalVote).times(100)
+    const oPercentage = sumVotes.div(totalVote).times(100)
 
     totalsArr.push({
       choice: choicesDict[choiceId],
       originalVotes: sumVotes,
       votes: sumVotes,
-      originalPercentage
+      oPercentage
     })
   }
   totalsArr.sort((a, b) => BigNumber(a.originalVotes).gt(b.originalVotes) ? -1 : 1)
@@ -248,37 +248,22 @@ async function main () {
     }
   }
 
-  // redistribute > 20%
+  // calculate new percentages
   for (const t of totalsArr) {
-    const curTotalVote = getCurrentTotalVote()
-    if (t.votes.div(curTotalVote).times(100).gt(MAX_PERCENT)) {
-      const originalVotes = t.votes
-      const newVotes = curTotalVote.times('0.2')
-      const subtractVotes = originalVotes.minus(newVotes)
-      t.votes = newVotes
-
-      let otherChoicesTotal = BigNumber(0)
-      for (const otherChoice of totalsArr) {
-        if (otherChoice.choice === t.choice) continue
-        otherChoicesTotal = otherChoicesTotal.plus(otherChoice.votes)
-      }
-
-      for (const otherChoice of totalsArr) {
-        if (otherChoice.choice === t.choice) continue
-        otherChoice.votes = otherChoice.votes.plus(subtractVotes.times(otherChoice.votes.div(otherChoicesTotal)))
-      }
-    }
+    t.pAfterChain = t.votes.div(getCurrentTotalVote()).times(100)
+    t.pCapped = BigNumber.min(20, t.pAfterChain)
   }
 
-  // calculate final percentages
+  const totalCappedPercentages = BigNumber.sum(...totalsArr.map(t => t.pCapped))
+
   for (const t of totalsArr) {
-    t.percentage = t.votes.div(getCurrentTotalVote()).times(100)
+    t.percentage = t.pCapped.div(totalCappedPercentages).times(100)
   }
 
   // add known bribes
   for (const t of totalsArr) {
-    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20, t.originalPercentage)) : BigNumber(0)
-    t.votersReceive = t.totalBribe.div(t.originalPercentage).toFixed(2) + ' QI/1%'
+    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20, t.oPercentage)) : BigNumber(0)
+    t.votersReceive = t.totalBribe.div(t.oPercentage).toFixed(2) + ' QI/1%'
   }
 
   // add qi per week
