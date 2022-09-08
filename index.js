@@ -22,7 +22,8 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   'WBTC (Optimism)': BigNumber(1585),
   'BAL (Polygon)': BigNumber(800),
   'xxLINK (Polygon)': BigNumber(800),
-  'vGHST (Polygon)': BigNumber(800)
+  'vGHST (Polygon)': BigNumber(800),
+  'WBTC (Metis)': BigNumber(800)
 }
 
 function choiceToChain (choice) {
