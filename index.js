@@ -24,7 +24,7 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   'BAL (Polygon)': QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(1000),
   'vGHST (Polygon)': BigNumber(800),
-  'WBTC (Metis)': BigNumber(800)
+  'WBTC (Metis)': BigNumber(1000)
 }
 
 function choiceToChain (choice) {
