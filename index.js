@@ -7,14 +7,14 @@ const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0xe32661e574a3238be9cbfe416c3284d09cb4d079f2a3ebf3449321553e078f2b'
-// const TETU_REFLECTION_PROPOSAL_ID = '0x9f2f40578eeaac4a1420cce5a7947c63ce56a48fc095e34183eb590055190e8a'
+const TETU_REFLECTION_PROPOSAL_ID = '0x9f2f40578eeaac4a1420cce5a7947c63ce56a48fc095e34183eb590055190e8a'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
-// const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
+const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
 const OUR_BRIBED_CHOICE = 'BAL (Polygon)'
-// const OUR_BRIBED_CHOICE_TETU = 'BAL(Polygon)'
+const OUR_BRIBED_CHOICE_TETU = 'BAL(Polygon)'
 const MAX_PERCENT = BigNumber(20)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
@@ -194,9 +194,9 @@ async function main () {
 
   // Get subgraph data
   const choicesDict = await getProposalChoices(QIDAO_PROPOSAL_ID)
-  // const tetuChoicesDict = await getProposalChoices(TETU_REFLECTION_PROPOSAL_ID)
+  const tetuChoicesDict = await getProposalChoices(TETU_REFLECTION_PROPOSAL_ID)
   const votes = await getAllVotes(QIDAO_PROPOSAL_ID)
-  // const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
+  const tetuVotes = await getAllVotes(TETU_REFLECTION_PROPOSAL_ID)
 
   // Calculate vote totals
   const voteTotals = {}
@@ -302,88 +302,90 @@ async function main () {
   }
 
   // Calculate Tetu bribes
-  // const tetuTotalsArr = []
-  // const tetuVote = find(votes, v => v.voter === TETU_ADDRESS)
+  const tetuTotalsArr = []
+  const tetuVote = find(votes, v => v.voter === TETU_ADDRESS)
 
-  // const tetuBribes = {}
-  // let ourTetuChoiceVotes = BigNumber(0)
+  const tetuBribes = {}
+  let ourTetuChoiceVotes = BigNumber(0)
 
-  // const tetuVoteTotals = {}
-  // for (const vote of tetuVotes) {
-  //   if (vote.vp === 0) continue
-  //   const totalWeight = BigNumber.sum(...Object.values(vote.choice))
+  // get total tetu votes by choice
+  const tetuVoteTotals = {}
+  for (const vote of tetuVotes) {
+    if (vote.vp === 0) continue
+    const totalWeight = BigNumber.sum(...Object.values(vote.choice))
 
-  //   for (const [choiceId, weight] of Object.entries(vote.choice)) {
-  //     if (!tetuVoteTotals[choiceId]) tetuVoteTotals[choiceId] = BigNumber(0)
-  //     tetuVoteTotals[choiceId] = BigNumber.sum(tetuVoteTotals[choiceId], BigNumber(vote.vp).times(BigNumber(weight)).div(totalWeight))
-  //   }
-  // }
+    for (const [choiceId, weight] of Object.entries(vote.choice)) {
+      if (!tetuVoteTotals[choiceId]) tetuVoteTotals[choiceId] = BigNumber(0)
+      tetuVoteTotals[choiceId] = BigNumber.sum(tetuVoteTotals[choiceId], BigNumber(vote.vp).times(BigNumber(weight)).div(totalWeight))
+    }
+  }
+  const tetuTotalVote = BigNumber.sum(...Object.values(tetuVoteTotals))
 
-  // const tetuTotalVote = BigNumber.sum(...Object.values(tetuVoteTotals))
+  for (const [choiceId, sumVotes] of Object.entries(tetuVoteTotals)) {
+    const choiceStr = tetuChoicesDict[choiceId]
+    const percentage = sumVotes.div(tetuTotalVote).times(100)
 
-  // for (const [choiceId, sumVotes] of Object.entries(tetuVoteTotals)) {
-  //   const choiceStr = tetuChoicesDict[choiceId]
-  //   const percentage = sumVotes.div(tetuTotalVote).times(100)
+    tetuTotalsArr.push({
+      choice: choiceStr,
+      votes: sumVotes,
+      percentage: percentage
+    })
 
-  //   tetuTotalsArr.push({
-  //     choice: choiceStr,
-  //     votes: sumVotes,
-  //     percentage: percentage
-  //   })
+    if (choiceStr === OUR_BRIBED_CHOICE_TETU[0]) {
+      ourTetuChoiceVotes = ourTetuChoiceVotes.plus(sumVotes)
+    }
+  }
 
-  //   if (choiceStr === OUR_BRIBED_CHOICE_TETU[0]) {
-  //     ourTetuChoiceVotes = ourTetuChoiceVotes.plus(sumVotes)
-  //   }
-  // }
+  tetuTotalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
 
-  // tetuTotalsArr.sort((a, b) => BigNumber(a.votes).gt(b.votes) ? -1 : 1)
+  // Calculate bribes for each voter
+  let tetuTotalVp = BigNumber(0)
+  let tetuBribedVp = BigNumber(0)
+  for (const vote of tetuVotes) {
+    tetuTotalVp = tetuTotalVp.plus(vote.vp)
 
-  // // Calculate bribes for each voter
-  // let tetuTotalVp = BigNumber(0)
-  // let tetuBribedVp = BigNumber(0)
-  // for (const vote of tetuVotes) {
-  //   tetuTotalVp = tetuTotalVp.plus(vote.vp)
+    if (vote.vp === 0) continue
 
-  //   if (vote.vp === 0) continue
+    const totalWeight = BigNumber.sum(...Object.values(vote.choice))
 
-  //   const totalWeight = BigNumber.sum(...Object.values(vote.choice))
+    let totalChoicePercent = BigNumber(0)
+    for (const [choiceId, weight] of Object.entries(vote.choice)) {
+      if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICE_TETU) {
+        totalChoicePercent = totalChoicePercent.plus(BigNumber(weight).div(totalWeight))
+      }
+    }
+    if (totalChoicePercent.eq(0)) continue
+    tetuBribes[vote.voter] = {
+      vp: vote.vp,
+      choicePercent: totalChoicePercent,
+      choiceVp: totalChoicePercent.times(vote.vp)
+    }
 
-  //   let totalChoicePercent = BigNumber(0)
-  //   for (const [choiceId, weight] of Object.entries(vote.choice)) {
-  //     if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICE_TETU) {
-  //       totalChoicePercent = totalChoicePercent.plus(BigNumber(weight).div(totalWeight))
-  //     }
-  //   }
-  //   if (totalChoicePercent.eq(0)) continue
-  //   tetuBribes[vote.voter] = {
-  //     vp: vote.vp,
-  //     choicePercent: totalChoicePercent,
-  //     choiceVp: totalChoicePercent.times(vote.vp)
-  //   }
+    tetuBribedVp = tetuBribedVp.plus(tetuBribes[vote.voter].choiceVp)
+  }
 
-  //   tetuBribedVp = tetuBribedVp.plus(tetuBribes[vote.voter].choiceVp)
-  // }
+  // get the % of the tetu vote that voted for us and receives bribes
+  const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
 
-  // // get the % of the tetu vote that voted 50/50 and receives bribes
+  // determine the total qidao vote % that this amount of votes was responsible for
+  let tetuTotalBribe
+  if (tetuVote) {
+    const tetuQiBribedVp = BigNumber(tetuVote.vp).times(percentTetuVoteBribed)
+    const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
 
-  // const percentTetuVoteBribed = tetuBribedVp.div(tetuTotalVp)
+    // TODO: find actual amount of QI_BRIBE_PER_ONE_PERCENT
+    tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
 
-  // // determine the total qidao vote % that this amount of votes was responsible for
-  // let tetuTotalBribe
-  // if (tetuVote) {
-  //   const tetuQiBribedVp = BigNumber(tetuVote.vp).times(percentTetuVoteBribed)
-  //   const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
-  //   tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
-
-  //   for (const i in tetuBribes) {
-  //     const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuTotalVp)
-  //     tetuBribes[i].bribeAmount = percentOfTetuVote.times(tetuTotalBribe)
-  //   }
-  // } else {
-  //   for (const i in tetuBribes) {
-  //     tetuBribes[i].bribeAmount = 'pending'
-  //   }
-  // }
+    for (const i in tetuBribes) {
+      const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuBribedVp)
+      tetuBribes[i].percentOfTetuVote = percentOfTetuVote
+      tetuBribes[i].bribeAmount = percentOfTetuVote.times(tetuTotalBribe)
+    }
+  } else {
+    for (const i in tetuBribes) {
+      tetuBribes[i].bribeAmount = 'pending'
+    }
+  }
 
   // Display:
   logSection(chalk.blue.underline('Vote totals'))
@@ -398,14 +400,14 @@ async function main () {
   logSection(chalk.blue.underline('Bribes by voter'))
   logTable(bribes, true)
 
-  // logSection(chalk.blue.underline('Tetu votes'))
-  // logTable(tetuTotalsArr)
+  logSection(chalk.blue.underline('Tetu votes'))
+  logTable(tetuTotalsArr)
 
-  // logSection(chalk.blue.underline('Tetu total bribe'))
-  // logText(tetuTotalBribe ? `${tetuTotalBribe.toFixed(2)} QI` : '-')
+  logSection(chalk.blue.underline('Tetu total bribe'))
+  logText(tetuTotalBribe ? `${tetuTotalBribe.toFixed(2)} QI` : '-')
 
-  // logSection(chalk.blue.underline('Tetu bribes'))
-  // logTable(tetuBribes, true)
+  logSection(chalk.blue.underline('Tetu bribes'))
+  logTable(tetuBribes, true)
 
   // if (getEnvVar('LOG_CSV')) {
   //   logSection(chalk.blue.underline('CSV for disperse.app'))
