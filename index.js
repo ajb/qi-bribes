@@ -374,7 +374,8 @@ async function main () {
     const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
 
     // TODO: find actual amount of QI_BRIBE_PER_ONE_PERCENT
-    tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
+    const bribePerOnePercent = BigNumber(parseFloat(find(totalsArr, t => t.choice === OUR_BRIBED_CHOICE).votersReceive.split('QI')[0]))
+    tetuTotalBribe = bribePerOnePercent.times(tetuQiPercent)
 
     for (const i in tetuBribes) {
       const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuBribedVp)
