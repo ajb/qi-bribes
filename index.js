@@ -259,6 +259,24 @@ async function main () {
 
   for (const t of totalsArr) {
     t.percentage = t.pCapped.div(totalCappedPercentages).times(100)
+    delete t.pAfterChain
+    delete t.pCapped
+  }
+
+  let i = 0
+  while (totalsArr[0].percentage.gt('20')) {
+    for (const t of totalsArr) {
+      t.pCapped = BigNumber.min(20, t.percentage)
+    }
+
+    const totalCappedPercentagesAgain = BigNumber.sum(...totalsArr.map(t => t.pCapped))
+
+    for (const t of totalsArr) {
+      t.percentage = t.pCapped.div(totalCappedPercentagesAgain).times(100)
+      delete t.pCapped
+    }
+    i++
+    if (i > 10) break
   }
 
   // add known bribes
