@@ -410,20 +410,21 @@ async function main () {
   logSection(chalk.blue.underline('Tetu bribes'))
   logTable(tetuBribes, true)
 
-  // if (getEnvVar('LOG_CSV')) {
-  //   logSection(chalk.blue.underline('CSV for disperse.app'))
-  //   const rows = []
+  if (getEnvVar('LOG_CSV')) {
+    logSection(chalk.blue.underline('CSV for disperse.app'))
+    const rows = []
 
-  //   for (const [a, b] of Object.entries(bribes)) {
-  //     if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
-  //   }
+    for (const [a, b] of Object.entries(bribes)) {
+      if (a === TETU_ADDRESS) continue // do not send bribes to tetu.eth
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+    }
 
-  //   for (const [a, b] of Object.entries(tetuBribes)) {
-  //     if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
-  //   }
+    for (const [a, b] of Object.entries(tetuBribes)) {
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+    }
 
-  //   console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
-  // }
+    console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
+  }
 }
 
 main()
