@@ -384,7 +384,7 @@ async function main () {
     tetuTotalBribe = QI_BRIBE_PER_ONE_PERCENT.times(tetuQiPercent)
 
     for (const i in tetuBribes) {
-      const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuTotalVp)
+      const percentOfTetuVote = tetuBribes[i].choiceVp.div(tetuBribedVp)
       tetuBribes[i].bribeAmount = percentOfTetuVote.times(tetuTotalBribe)
     }
   } else {
@@ -425,11 +425,11 @@ async function main () {
     const rows = []
 
     for (const [a, b] of Object.entries(bribes)) {
-      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
     }
 
     for (const [a, b] of Object.entries(tetuBribes)) {
-      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
     }
 
     console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
