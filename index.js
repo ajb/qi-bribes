@@ -6,25 +6,20 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xe32661e574a3238be9cbfe416c3284d09cb4d079f2a3ebf3449321553e078f2b'
-const TETU_REFLECTION_PROPOSAL_ID = '0x9f2f40578eeaac4a1420cce5a7947c63ce56a48fc095e34183eb590055190e8a'
+const QIDAO_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('8.333')
 const TOTAL_WEEKLY_QI = BigNumber(180000)
-const OUR_BRIBED_CHOICE = 'BAL (Polygon)'
-const OUR_BRIBED_CHOICE_TETU = 'BAL(Polygon)'
+const OUR_BRIBED_CHOICE = ''
+const OUR_BRIBED_CHOICE_TETU = ''
 const MAX_PERCENT = BigNumber(20)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
-  'WBTC (Optimism)': BigNumber(1585),
-  'WETH (Optimism)': BigNumber(1000),
-  'BAL (Polygon)': QI_BRIBE_PER_ONE_PERCENT,
-  'xxLINK (Polygon)': BigNumber(1000),
-  'vGHST (Polygon)': BigNumber(800),
-  'WBTC (Metis)': BigNumber(1000)
+  'WBTC (Optimism)': BigNumber(1585)
 }
 
 function choiceToChain (choice) {
@@ -391,7 +386,6 @@ async function main () {
     const tetuQiBribedVp = BigNumber(tetuVote.vp).times(percentTetuVoteBribed)
     const tetuQiPercent = tetuQiBribedVp.div(totalVote).times(100)
 
-    // TODO: find actual amount of QI_BRIBE_PER_ONE_PERCENT
     const bribePerOnePercent = BigNumber(parseFloat(find(totalsArr, t => t.choice === OUR_BRIBED_CHOICE).votersReceive.split('QI')[0]))
     tetuTotalBribe = bribePerOnePercent.times(tetuQiPercent)
 
