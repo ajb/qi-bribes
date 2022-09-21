@@ -6,7 +6,7 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0x0893fda0cbd182eafe7bd4a4f5ec3ccdcda85cd16cd485761eb4d4d63652d299'
 const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(900)
@@ -19,7 +19,9 @@ const MAX_PERCENT = BigNumber(20)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
-  'WBTC (Optimism)': BigNumber(1585)
+  'xxLINK (Polygon)': BigNumber(900),
+  'WBTC (Metis)': BigNumber(900),
+  [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT
 }
 
 function choiceToChain (choice) {
