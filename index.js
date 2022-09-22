@@ -29,7 +29,9 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
 }
 
 function choiceToChain (choice) {
-  return choice.split('(')[1].split(')')[0]
+  const raw = choice.split('(')[1].split(')')[0]
+  if (raw === 'Eth') return 'Ethereum'
+  return raw
 }
 
 function getEnvVar (n) {
