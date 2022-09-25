@@ -25,7 +25,7 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   'vGHST (Polygon)': BigNumber(901),
   'Beefy Aave ETH (Optimism)': BigNumber(1300),
   'WBTC (Optimism)': BigNumber(1000),
-  'YEARN LINK (Ethereum)': BigNumber(1300)
+  'Yearn LINK (Ethereum)': BigNumber(1300)
 }
 
 function choiceToChain (choice) {
