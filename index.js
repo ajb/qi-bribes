@@ -21,11 +21,11 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(1000),
-  'WBTC (Metis)': BigNumber(1250),
+  'WBTC (Metis)': BigNumber(1300),
   'vGHST (Polygon)': BigNumber(901),
-  'Beefy Aave ETH (Optimism)': BigNumber(1000),
+  'Beefy Aave ETH (Optimism)': BigNumber(1300),
   'WBTC (Optimism)': BigNumber(1000),
-  'YEARN LINK (Ethereum)': BigNumber(1000)
+  'YEARN LINK (Ethereum)': BigNumber(1300)
 }
 
 function choiceToChain (choice) {
