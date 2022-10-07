@@ -24,7 +24,7 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   'WBTC (Metis)': BigNumber(900),
   // 'vGHST (Polygon)': BigNumber(901),
   'Beefy Aave ETH (Optimism)': BigNumber(950),
-  'WBTC (Optimism)': BigNumber(900),
+  'WBTC (Optimism)': BigNumber(950),
   'Yearn LINK (Ethereum)': BigNumber(1000)
 }
 
