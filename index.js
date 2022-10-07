@@ -9,7 +9,7 @@ const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x446f8a9febedd98e2d98d22f0508327547598999bfcf78cff8e5657a02897bfc'
 const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(800)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(950)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
@@ -111,6 +111,11 @@ function logTable (data, voterHeaders) {
       node.className = 'tableWrapper'
       node.innerHTML = tableify(data)
       document.body.appendChild(node)
+
+      const rows = [...document.querySelectorAll('tr')]
+      rows.filter(a => a.textContent.includes(OUR_BRIBED_CHOICE)).forEach(el => {
+        el.className = 'highlight'
+      })
     }
   }
 }
@@ -285,6 +290,7 @@ async function main () {
   // add known bribes
   for (const t of totalsArr) {
     t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, MAX_PERCENT, t.oPercentage)) : BigNumber(0)
+    t.originalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].toFixed(2) + ' QI/1%' : '-'
     t.votersReceive = t.totalBribe.div(t.oPercentage).toFixed(2) + ' QI/1%'
   }
 
