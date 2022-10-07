@@ -21,11 +21,11 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(800),
-  'WBTC (Metis)': BigNumber(800),
+  'WBTC (Metis)': BigNumber(900),
   // 'vGHST (Polygon)': BigNumber(901),
   // 'Beefy Aave ETH (Optimism)': BigNumber(1300),
   // 'WBTC (Optimism)': BigNumber(1000),
-  'Yearn LINK (Ethereum)': BigNumber(800)
+  'Yearn LINK (Ethereum)': BigNumber(1000)
 }
 
 function choiceToChain (choice) {
@@ -255,7 +255,7 @@ async function main () {
   // calculate new percentages
   for (const t of totalsArr) {
     t.pAfterChain = t.votes.div(getCurrentTotalVote()).times(100)
-    t.pCapped = BigNumber.min(20, t.pAfterChain)
+    t.pCapped = BigNumber.min(MAX_PERCENT, t.pAfterChain)
   }
 
   const totalCappedPercentages = BigNumber.sum(...totalsArr.map(t => t.pCapped))
@@ -267,9 +267,9 @@ async function main () {
   }
 
   let i = 0
-  while (totalsArr[0].percentage.gt('20')) {
+  while (totalsArr[0].percentage.gt(MAX_PERCENT)) {
     for (const t of totalsArr) {
-      t.pCapped = BigNumber.min(20, t.percentage)
+      t.pCapped = BigNumber.min(MAX_PERCENT, t.percentage)
     }
 
     const totalCappedPercentagesAgain = BigNumber.sum(...totalsArr.map(t => t.pCapped))
@@ -279,12 +279,12 @@ async function main () {
       delete t.pCapped
     }
     i++
-    if (i > 10) break
+    if (i > 100) break
   }
 
   // add known bribes
   for (const t of totalsArr) {
-    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, 20, t.oPercentage)) : BigNumber(0)
+    t.totalBribe = KNOWN_BRIBES_PER_ONE_PERCENT[t.choice] ? KNOWN_BRIBES_PER_ONE_PERCENT[t.choice].times(BigNumber.min(t.percentage, MAX_PERCENT, t.oPercentage)) : BigNumber(0)
     t.votersReceive = t.totalBribe.div(t.oPercentage).toFixed(2) + ' QI/1%'
   }
 
