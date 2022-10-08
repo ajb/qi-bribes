@@ -21,7 +21,7 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(800),
-  'WBTC (Metis)': BigNumber(900),
+  'WBTC (Metis)': BigNumber(950),
   // 'vGHST (Polygon)': BigNumber(901),
   'Beefy Aave ETH (Optimism)': BigNumber(950),
   'WBTC (Optimism)': BigNumber(950),
