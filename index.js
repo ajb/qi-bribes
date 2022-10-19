@@ -22,9 +22,8 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(500),
   'WBTC (Metis)': BigNumber(500),
-  // // 'vGHST (Polygon)': BigNumber(901),
-  // 'Beefy Aave ETH (Optimism)': BigNumber(950),
-  // 'WBTC (Optimism)': BigNumber(950),
+  'Beefy Aave ETH (Optimism)': BigNumber(500),
+  'WBTC (Optimism)': BigNumber(525),
   'Yearn LINK (Ethereum)': BigNumber(550)
 }
 
