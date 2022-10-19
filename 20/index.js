@@ -6,10 +6,10 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xa31295dc86a7435037a4890ab1e1dc401cc705d78cabba2f73969a88409b81d0'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0x446f8a9febedd98e2d98d22f0508327547598999bfcf78cff8e5657a02897bfc'
+const TETU_REFLECTION_PROPOSAL_ID = '0xf2836932f7db5f76809eb59effb80f2dfaafbb3bb6dd10c05aa0c6da12852783'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(500)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(950)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
@@ -20,12 +20,12 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'xxLINK (Polygon)': BigNumber(500)
-  // 'WBTC (Metis)': BigNumber(950),
-  // // 'vGHST (Polygon)': BigNumber(901),
-  // 'Beefy Aave ETH (Optimism)': BigNumber(950),
-  // 'WBTC (Optimism)': BigNumber(950),
-  // 'Yearn LINK (Ethereum)': BigNumber(1000)
+  'xxLINK (Polygon)': BigNumber(800),
+  'WBTC (Metis)': BigNumber(950),
+  // 'vGHST (Polygon)': BigNumber(901),
+  'Beefy Aave ETH (Optimism)': BigNumber(950),
+  'WBTC (Optimism)': BigNumber(950),
+  'Yearn LINK (Ethereum)': BigNumber(1000)
 }
 
 function choiceToChain (choice) {
@@ -115,9 +115,6 @@ function logTable (data, voterHeaders) {
       const rows = [...document.querySelectorAll('tr')]
       rows.filter(a => a.textContent.includes(OUR_BRIBED_CHOICE)).forEach(el => {
         el.className = 'highlight'
-      })
-      rows.filter(a => a.textContent.includes('xxLINK')).forEach(el => {
-        el.className = 'highlight-blue'
       })
     }
   }
@@ -275,21 +272,19 @@ async function main () {
   }
 
   let i = 0
-  if (totalsArr[0]) {
-    while (totalsArr[0].percentage.gt(MAX_PERCENT)) {
-      for (const t of totalsArr) {
-        t.pCapped = BigNumber.min(MAX_PERCENT, t.percentage)
-      }
-
-      const totalCappedPercentagesAgain = BigNumber.sum(...totalsArr.map(t => t.pCapped))
-
-      for (const t of totalsArr) {
-        t.percentage = t.pCapped.div(totalCappedPercentagesAgain).times(100)
-        delete t.pCapped
-      }
-      i++
-      if (i > 100) break
+  while (totalsArr[0].percentage.gt(MAX_PERCENT)) {
+    for (const t of totalsArr) {
+      t.pCapped = BigNumber.min(MAX_PERCENT, t.percentage)
     }
+
+    const totalCappedPercentagesAgain = BigNumber.sum(...totalsArr.map(t => t.pCapped))
+
+    for (const t of totalsArr) {
+      t.percentage = t.pCapped.div(totalCappedPercentagesAgain).times(100)
+      delete t.pCapped
+    }
+    i++
+    if (i > 100) break
   }
 
   // add known bribes
@@ -327,7 +322,7 @@ async function main () {
 
   // Get total choice VP
   const totalChoiceVp = BigNumber.sum(...Object.values(bribes).map(b => b.choiceVp))
-  const totalBribe = totalsArr[0] ? find(totalsArr, t => t.choice === OUR_BRIBED_CHOICE).totalBribe : BigNumber(0)
+  const totalBribe = find(totalsArr, t => t.choice === OUR_BRIBED_CHOICE).totalBribe
 
   for (const i in bribes) {
     bribes[i].bribeAmount = bribes[i].choiceVp.div(totalChoiceVp).times(totalBribe)
@@ -360,7 +355,7 @@ async function main () {
     tetuTotalsArr.push({
       choice: choiceStr,
       votes: sumVotes,
-      percentage
+      percentage: percentage
     })
 
     if (choiceStr === OUR_BRIBED_CHOICE_TETU[0]) {
