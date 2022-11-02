@@ -7,14 +7,13 @@ const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x966ef5d3b93c5ec6dc420381e66e657b76fedc8b7746e4ed9b8fe7c96cde50d9'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x2b8b847bb0d8b0f79d25d8b6690c22643fb035cc527be1282e6ff460a2a15668'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(500)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
 const OUR_BRIBED_CHOICE = 'Beefy Aave BTC (Optimism)'
-const OUR_BRIBED_CHOICE_TETU = 'Beefy Aave BTC (Optimism)'
 const MAX_PERCENT = BigNumber(15)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
@@ -361,7 +360,7 @@ async function main () {
       percentage
     })
 
-    if (choiceStr === OUR_BRIBED_CHOICE_TETU[0]) {
+    if (choiceStr === OUR_BRIBED_CHOICE[0]) {
       ourTetuChoiceVotes = ourTetuChoiceVotes.plus(sumVotes)
     }
   }
@@ -380,7 +379,7 @@ async function main () {
 
     let totalChoicePercent = BigNumber(0)
     for (const [choiceId, weight] of Object.entries(vote.choice)) {
-      if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICE_TETU) {
+      if (tetuChoicesDict[choiceId] === OUR_BRIBED_CHOICE) {
         totalChoicePercent = totalChoicePercent.plus(BigNumber(weight).div(totalWeight))
       }
     }
