@@ -6,8 +6,8 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x966ef5d3b93c5ec6dc420381e66e657b76fedc8b7746e4ed9b8fe7c96cde50d9'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0xa31295dc86a7435037a4890ab1e1dc401cc705d78cabba2f73969a88409b81d0'
+const TETU_REFLECTION_PROPOSAL_ID = '0x914f3002b8d9b1d6c9ae9b898073425b23e9a7ad77bf970489b252f1e9f2cd93'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(500)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
@@ -20,10 +20,10 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'xxLINK (Polygon)': BigNumber(500)
-  // 'Beefy Aave ETH (Optimism)': BigNumber(500),
-  // 'WBTC (Optimism)': BigNumber(525),
-  // 'Yearn LINK (Ethereum)': BigNumber(550)
+  'xxLINK (Polygon)': BigNumber(500),
+  'Beefy Aave ETH (Optimism)': BigNumber(500),
+  'WBTC (Optimism)': BigNumber(525),
+  'Yearn LINK (Ethereum)': BigNumber(550)
 }
 
 function choiceToChain (choice) {
