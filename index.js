@@ -9,7 +9,7 @@ const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0x966ef5d3b93c5ec6dc420381e66e657b76fedc8b7746e4ed9b8fe7c96cde50d9'
 const TETU_REFLECTION_PROPOSAL_ID = '0x2b8b847bb0d8b0f79d25d8b6690c22643fb035cc527be1282e6ff460a2a15668'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(600)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(650)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
@@ -21,8 +21,8 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
   'xxLINK (Polygon)': BigNumber(650),
   'Beefy Aave ETH (Optimism)': BigNumber(500),
-  'WBTC (Optimism)': BigNumber(550),
-  'Yearn LINK (Ethereum)': BigNumber(600),
+  'WBTC (Optimism)': BigNumber(650),
+  'Yearn LINK (Ethereum)': BigNumber(650),
   'WBTC (Metis)': BigNumber(650)
 }
 
