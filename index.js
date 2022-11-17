@@ -23,7 +23,7 @@ const KNOWN_BRIBES_PER_ONE_PERCENT = {
   // 'Beefy Aave ETH (Optimism)': BigNumber(500),
   'WBTC (Optimism)': BigNumber(500),
   'Yearn LINK (Ethereum)': BigNumber(500),
-  'WBTC (Metis)': BigNumber(500)
+  'm.WBTC (Metis)': BigNumber(500)
 }
 
 function choiceToChain (choice) {
