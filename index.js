@@ -6,8 +6,8 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xfe28138e02dc2fa59ea40f325ea972eb7d03191121bac718b9cb95368c2617b8'
-const TETU_REFLECTION_PROPOSAL_ID = '0x2c2cc1475e9d51ce8f436de0bd86fc6764c798cacf772346e79aae40903f2dc1'
+const QIDAO_PROPOSAL_ID = '0x'
+const TETU_REFLECTION_PROPOSAL_ID = '0x'
 const PAGE_SIZE = 1000
 const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
@@ -448,11 +448,11 @@ async function main () {
 
     for (const [a, b] of Object.entries(bribes)) {
       if (a === TETU_ADDRESS) continue // do not send bribes to tetu.eth
-      if (b.bribeAmount.gt(0.5)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
     }
 
     for (const [a, b] of Object.entries(tetuBribes)) {
-      if (b.bribeAmount.gt(0.5)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
     }
 
     console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
