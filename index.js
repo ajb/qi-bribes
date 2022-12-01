@@ -6,24 +6,22 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0x'
-const TETU_REFLECTION_PROPOSAL_ID = '0x'
+const QIDAO_PROPOSAL_ID = '0xb8bf541a2698d288fee4101891cb138c5dd739872a61426a504ff44c3222bcc3'
+const TETU_REFLECTION_PROPOSAL_ID = '0x5eb706e38d5cf68b7215800a0a2927427ec992a8fcebd42723f9b42dc1f4a5d2'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(1000)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(750)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
-const OUR_BRIBED_CHOICE = 'AAVE (Fantom)'
+const OUR_BRIBED_CHOICE = 'SUSHI (Fantom)'
 const MAX_PERCENT = BigNumber(15)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'SUSHI (Fantom)': BigNumber(1000)
-  // 'Beefy Aave ETH (Optimism)': BigNumber(500),
-  // 'WBTC (Optimism)': BigNumber(500),
-  // 'Yearn LINK (Ethereum)': BigNumber(500),
-  // 'm.WBTC (Metis)': BigNumber(500)
+  'xxLINK (Polygon)': BigNumber(500),
+  'Yearn LINK (Ethereum)': BigNumber(500),
+  'm.WBTC (Metis)': BigNumber(500)
 }
 
 function choiceToChain (choice) {
@@ -112,9 +110,6 @@ function logTable (data, voterHeaders) {
 
       const rows = [...document.querySelectorAll('tr')]
       rows.filter(a => a.textContent.includes(OUR_BRIBED_CHOICE)).forEach(el => {
-        el.className = 'highlight'
-      })
-      rows.filter(a => a.textContent.includes('SUSHI (Fantom)')).forEach(el => {
         el.className = 'highlight'
       })
       rows.filter(a => a.textContent.includes('xxLINK')).forEach(el => {
