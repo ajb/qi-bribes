@@ -6,22 +6,22 @@ const cloneDeep = require('lodash.clonedeep')
 const find = require('lodash.find')
 
 const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
-const QIDAO_PROPOSAL_ID = '0xfc9af9f19f6f04abc94615c51e55332bc652ea7b160620bd251debe209ad71f0'
-const TETU_REFLECTION_PROPOSAL_ID = '0x7543dbea5b48b136ace38feeb4bb32d9f7ecafb58ef922468f21a3fd6e996768'
+const QIDAO_PROPOSAL_ID = '0xb8bf541a2698d288fee4101891cb138c5dd739872a61426a504ff44c3222bcc3'
+const TETU_REFLECTION_PROPOSAL_ID = '0x5eb706e38d5cf68b7215800a0a2927427ec992a8fcebd42723f9b42dc1f4a5d2'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(250)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(750)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
-const OUR_BRIBED_CHOICE = 'Beefy Aave BTC (Optimism)'
+const OUR_BRIBED_CHOICE = 'SUSHI (Fantom)'
 const MAX_PERCENT = BigNumber(15)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'xxLINK (Polygon)': BigNumber(250)
-  // 'Yearn LINK (Ethereum)': BigNumber(500),
-  // 'm.WBTC (Metis)': BigNumber(500)
+  'xxLINK (Polygon)': BigNumber(500),
+  'Yearn LINK (Ethereum)': BigNumber(500),
+  'm.WBTC (Metis)': BigNumber(500)
 }
 
 function choiceToChain (choice) {

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style type="text/css">
+    body {
+      text-align: center;
+      background: #001f3f;
+      color: #eee;
+      font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    }
+
+    #collatImg {
+      width: 120px;
+      height: 120px;
+    }
+
+    .tableWrapper {
+      margin: 0 auto;
+      width: 800px;
+    }
+
+    td {
+      border: 1px solid grey;
+    }
+
+    tr.highlight {
+      background: #ffffb1;
+      color: #001f3f;
+      font-weight: bold;
+    }
+
+    tr.highlight-blue {
+      background: #7FDBFF;
+      color: #001f3f;
+      font-weight: bold;
+    }
+
+    h5 {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <img src="sushi.png" id="collatImg" />
+  <h1>QiDao Gauge Vote: Round 24</h1>
+  <h2>Vote for SUSHI on Fantom to receive <span id="qiPerPercent"></span> QI per 1% of the vote.</h2>
+  <h4><a id="linkToSnapshot"></a></h4>
+  <h4>Bribes will be paid on Polygon, <em><u>after incentives are paid on Fantom.</u></em> <br />
+    Please note that this means a delay of up to 2 weeks before receiving your bribe. <br />
+    You will receive bribe payments on approximately 12/14 and 12/21.<br />Note: there is a max total bribe of <span id="maxTotalBribe"></span> QI.</h4>
+  <h6>Bribe data last updated: <em>12/01/2022 @ 3:44pm UTC</em></h6>
+  <div id='loading'>Loading...</div>
+  <script src="dist/main.js"></script>
+</body>
+</html>
