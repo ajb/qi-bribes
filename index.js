@@ -19,7 +19,7 @@ const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'Yearn LINK (Ethereum)': BigNumber(250),
+  'Yearn LINK (Ethereum)': BigNumber(400),
   'SAND (Polygon)': BigNumber(300)
 }
 
