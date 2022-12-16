@@ -13,15 +13,14 @@ const QI_BRIBE_PER_ONE_PERCENT = BigNumber(250)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
-const OUR_BRIBED_CHOICE = 'Beefy Aave BTC (Optimism)'
+const OUR_BRIBED_CHOICE = 'xxLINK (Polygon)'
 const MAX_PERCENT = BigNumber(15)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
 const KNOWN_BRIBES_PER_ONE_PERCENT = {
   [OUR_BRIBED_CHOICE]: QI_BRIBE_PER_ONE_PERCENT,
-  'xxLINK (Polygon)': BigNumber(250)
-  // 'Yearn LINK (Ethereum)': BigNumber(500),
-  // 'm.WBTC (Metis)': BigNumber(500)
+  'Yearn LINK (Ethereum)': BigNumber(250),
+  'SAND (Polygon)': BigNumber(300)
 }
 
 function choiceToChain (choice) {
