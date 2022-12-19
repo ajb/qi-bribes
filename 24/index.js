@@ -443,11 +443,11 @@ async function main () {
 
     for (const [a, b] of Object.entries(bribes)) {
       if (a === TETU_ADDRESS) continue // do not send bribes to tetu.eth
-      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
     }
 
     for (const [a, b] of Object.entries(tetuBribes)) {
-      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.div(2).toFixed(10)])
     }
 
     console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
