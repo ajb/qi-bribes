@@ -9,11 +9,11 @@ const GRAPHQL_ENDPOINT = 'https://hub.snapshot.org/graphql'
 const QIDAO_PROPOSAL_ID = '0xc202dec760f96d3f868a7353e1f50e2e51c38cd94e5fda0dabab8a50e70bf3a6'
 const TETU_REFLECTION_PROPOSAL_ID = '0xd19aa1308dc1bccef953f5b5aad6b64f880eb57ed91a821ad621f3c83e0b3ed5'
 const PAGE_SIZE = 1000
-const QI_BRIBE_PER_ONE_PERCENT = BigNumber(600)
+const QI_BRIBE_PER_ONE_PERCENT = BigNumber(500)
 const TETU_ADDRESS = '0x0644141DD9C2c34802d28D334217bD2034206Bf7'
 const MIN_PERCENTAGE_FOR_CHAIN_TO_RECEIVE_REWARDS = BigNumber('5')
 const TOTAL_WEEKLY_QI = BigNumber(150000)
-const OUR_BRIBED_CHOICE = 'Wrapped staked Ether (Optimism) '
+const OUR_BRIBED_CHOICE = 'xxLINK (Polygon)'
 const MAX_PERCENT = BigNumber(15)
 const MAX_BRIBE_IN_QI = QI_BRIBE_PER_ONE_PERCENT.times(MAX_PERCENT)
 
@@ -444,11 +444,11 @@ async function main () {
 
     for (const [a, b] of Object.entries(bribes)) {
       if (a === TETU_ADDRESS) continue // do not send bribes to tetu.eth
-      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.001)) rows.push([a, b.bribeAmount.toFixed(10)])
     }
 
     for (const [a, b] of Object.entries(tetuBribes)) {
-      if (b.bribeAmount.gt(0.1)) rows.push([a, b.bribeAmount.toFixed(10)])
+      if (b.bribeAmount.gt(0.001)) rows.push([a, b.bribeAmount.toFixed(10)])
     }
 
     console.log(rows.map(row => `${row[0]}=${row[1]}`).join('\n'))
